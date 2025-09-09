@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>E and N 2 Player Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      font-family: 'Luckiest Guy', cursive;
+    }
+    /* Animated wave gradient background */
+    body {
+      min-height: 100vh;
+      background: linear-gradient(120deg, #6ab7ff 0%, #b388ff 75%);
+      background-size: 400% 400%;
+      animation: waveMove 16s ease-in-out infinite alternate;
+      position: relative;
+    }
+    @keyframes waveMove {
+      0% {background-position:0% 50%;}
+      100% {background-position:100% 50%;}
+    }
+    /* Center top elements */
+    .top-center {
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+      padding-top: 2.5rem;
+      margin-bottom: 2.5rem;
+    }
+    /* Header animation */
+    .header {
+      font-family: 'Luckiest Guy', cursive;
+      font-size: 3rem;
+      color: #6ab7ff;
+      text-shadow: 2px 2px 0 #fff, 0 0 12px #b388ff88;
+      animation: headerPop 1.3s cubic-bezier(.6,-0.28,.74,1.08);
+    }
+    @keyframes headerPop {
+      0% {opacity:0; transform:scale(0.2) rotate(-15deg);}
+      80% {transform:scale(1.18) rotate(8deg);}
+      100% {opacity:1; transform:scale(1) rotate(0);}
+    }
+    .fadeText {
+      font-family: 'Luckiest Guy', cursive;
+      font-size: 1.5rem;
+      color: #7570b3;
+      opacity: 0;
+      animation: fadeIn 2s 1s forwards;
+      margin-bottom: 1rem;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+    .play-btn {
+      margin-top: 1rem;
+      font-family: 'Luckiest Guy', cursive;
+      font-size: 1.2rem;
+      background: #6ab7ff;
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      padding: 1em 2em;
+      box-shadow: 0 2px 8px #b388ff60;
+      transition: background .2s;
+    }
+    .play-btn:hover {
+      background:#b388ff;
+      color:#fff;
+    }
+    /* Game boxes grid: 4 columns, wrapping rows */
+    .game-list {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      justify-items: center;
+      margin: 3rem auto 2rem auto;
+      max-width: 960px;
+      z-index: 2;
+      position: relative;
+    }
+    @media(max-width: 900px) {
+      .game-list { grid-template-columns: repeat(2, 1fr);}
+    }
+    @media(max-width: 600px){
+      .game-list { grid-template-columns: 1fr;}
+    }
+    .game-box {
+      cursor: pointer;
+      background: #fff2;
+      padding: 1rem;
+      border-radius: 1em;
+      box-shadow: 0 2px 10px #b388ff44;
+      transition: box-shadow .25s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 140px;
+    }
+    .game-box img {
+      width: 120px;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      border-radius: 0.8em;
+      margin-bottom: 0.5rem;
+    }
+    .game-box:hover {
+      box-shadow: 0 0 20px #b388ff88;
+      background: #fff4;
+    }
+    /* Modal overlay */
+    .modal-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,.5);
+      display: none; align-items: center; justify-content: center;
+      z-index: 99;
+    }
+    .modal-bg.show { display: flex; }
+    .modal-content {
+      background: white;
+      border-radius: 1em;
+      display: flex;
+      align-items: center;
+      padding: 2rem;
+      box-shadow: 0 4px 24px #b388ff66;
+      max-width: 96vw;
+    }
+    .modal-content img {
+      width: 140px;
+      border-radius: 1em;
+      margin-right: 1.3rem;
+      box-shadow: 0 1px 8px #b388ff22;
+    }
+    .desc {
+      max-width: 320px;
+      color: #7570b3;
+      font-family: 'Luckiest Guy', cursive;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+    @media(max-width: 600px){
+      .modal-content {
+        flex-direction: column;
+      }
+      .modal-content img {
+        margin-bottom: 1rem;
+        margin-right: 0;
+      }
+    }
+    /* Falling stars canvas */
+    #stars {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="top-center">
+    <div class="header">E and N 2 Player Games</div>
+    <div class="fadeText">Have Fun!</div>
+    <button class="play-btn" id="randomBtn">Play a Random Game</button>
+  </div>
+  <div class="game-list" id="gameList"></div>
+
+  <!-- Modal overlay -->
+  <div class="modal-bg" id="modal">
+    <div class="modal-content">
+      <img id="modalImg" src="" alt="Game preview" />
+      <div>
+        <div class="desc" id="modalDesc"></div>
+        <button class="play-btn" id="modalPlay">Play</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Editable games array — add more easily
+    const games = [
+      {
+        name: "Fireboy and Watergirl",
+        img: "https://play-lh.googleusercontent.com/k4KBrnuuYncJkCAQkz86f_vnkTtu6q31RUwd2nqDZkoV_j-Ylqsmj9ZV1t7e6T2Z0g",
+        desc: "A cooperative puzzle-platformer video game series where players control Fireboy, a character made of fire, and Watergirl, a character made of water, to navigate temples, solve puzzles, and collect diamonds!",
+        url: "/right/FBWG"
+      },
+      {
+        name: "Fireboy and Watergirl 2",
+        img: "https://play-lh.googleusercontent.com/5-YcjiTyMrPJEZe078dHMxnCxcg2A_8NWJZQieRvn2Gkf8JOuHZEbTmFyQ9gn5p2lnU",
+        desc: "A cooperative puzzle-platformer video game series where players control Fireboy, a character made of fire, and Watergirl, a character made of water, to navigate temples, solve puzzles, and collect diamonds!",
+        url: "/right/FBWG2"
+      },
+      {
+        name: "Fireboy and Watergirl 3",
+        img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyIBBleB1O09UU1wKN1Y5swNbUbsz4kaQLI2kZyGRqwU6U_kE:https://kizicdn.com/system/static/thumbs/big_tile_thumb/31/thumb300_FBWG3_300x300.jpg%3F1556198457&s",
+        desc: "A cooperative puzzle-platformer video game series where players control Fireboy, a character made of fire, and Watergirl, a character made of water, to navigate temples, solve puzzles, and collect diamonds!",
+        url: "/right/FBWG3"
+      },
+      {
+        name: "Fireboy and Watergirl 4",
+        img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeUhbyZDtTSOk6vgspdEcR36UBQU7J9nMKR6ytHETK4H7wl0f8:https://gameforge.com/de-DE/littlegames/includes/images/games/1808_5eb2d89905f2d.jpg&s",
+        desc: "A cooperative puzzle-platformer video game series where players control Fireboy, a character made of fire, and Watergirl, a character made of water, to navigate temples, solve puzzles, and collect diamonds!",
+        url: "/right/FBWG4"
+      },
+      {
+        name: "Connect 4",
+        img: "https://www.helpfulgames.com/bilder/spel/4-i-rad.png",
+        desc: "Connect 4 in a row to win!",
+        url: "/right/CN4"
+      },
+      {
+        name: "Chess",
+        img: "https://images.chesscomfiles.com/uploads/v1/images_users/tiny_mce/dipenderkaushik/phpu2KANa.jpeg",
+        desc: "Chess..?",
+        url: "/right/CHESS"
+      },
+      {
+        name: "House Of Hazards",
+        img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsQnvDbv6EEHU_FqAp2KKxydRp90jaFGophrWULuZLCsmuw6AeBzzeArTeLmOaZY1R--4:https://img.gamesgo.net/storage/images/games/house-of-hazards/house-of-hazardsjpg.jpg&usqp=CAU",
+        desc: "Try not to die against very stupid things!",
+        url: "/right/HOH"
+      },
+      {
+        name: "Ping Pong Chaos",
+        img: "https://is2-ssl.mzstatic.com/image/thumb/Purple118/v4/60/49/99/60499978-2a60-5b0d-882f-0ca2ed97714c/source/512x512bb.jpg",
+        desc: "Never played it, so who knows?",
+        url: "/right/PING"
+      }
+      // Add more games here...
+    ];
+
+    // Render game boxes
+    const gameList = document.getElementById('gameList');
+    games.forEach(game => {
+      const box = document.createElement('div');
+      box.className = 'game-box';
+      box.innerHTML = `
+        <img src="${game.img}" alt="${game.name} icon" />
+        <div>${game.name}</div>`;
+      box.onclick = () => {
+        document.getElementById('modal').classList.add('show');
+        document.getElementById('modalImg').src = game.img;
+        document.getElementById('modalDesc').textContent = game.desc;
+        document.getElementById('modalPlay').onclick = () => {
+          location.href = game.url;
+        };
+      };
+      gameList.append(box);
+    });
+
+    // Modal close when clicking background overlay
+    document.getElementById('modal').onclick = e => {
+      if (e.target === document.getElementById('modal')) {
+        document.getElementById('modal').classList.remove('show');
+      }
+    };
+
+    // Play random game button handler
+    document.getElementById('randomBtn').onclick = () => {
+      const rnd = games[Math.floor(Math.random() * games.length)];
+      location.href = rnd.url;
+    };
+
+    // Falling stars animation with trails
+    let ctx, w, h, stars;
+    function resizeStars() {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      const canvas = document.getElementById('stars');
+      canvas.width = w;
+      canvas.height = h;
+      ctx = canvas.getContext('2d');
+      stars = [...Array(7)].map(() => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        dy: 3 + Math.random() * 2,
+        tr: []
+      }));
+    }
+    window.addEventListener('resize', resizeStars);
+    resizeStars();
+
+    function drawStars() {
+      ctx.clearRect(0, 0, w, h);
+      stars.forEach(s => {
+        s.tr.push([s.x, s.y]);
+        if (s.tr.length > 14) s.tr.shift();
+        ctx.strokeStyle = "rgba(255,255,255,.22)";
+        ctx.beginPath();
+        for (let i = 1; i < s.tr.length; i++) {
+          ctx.moveTo(s.tr[i - 1][0], s.tr[i - 1][1]);
+          ctx.lineTo(s.tr[i][0], s.tr[i][1]);
+        }
+        ctx.stroke();
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 2.7, 0, Math.PI * 2);
+        ctx.fill();
+        s.y += s.dy;
+        if (s.y > h) {
+          s.y = 0;
+          s.x = Math.random() * w;
+          s.tr = [];
+        }
+      });
+      requestAnimationFrame(drawStars);
+    }
+    drawStars();
+  </script>
+</body>
+</html>
